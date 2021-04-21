@@ -1,0 +1,96 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+#
+
+LINUX_BASE_BOX = "bento/ubuntu-18.04"
+LINUX_IP_ADDRESS = "10.199.0.200"
+
+Vagrant.configure(2) do |config|
+
+	1.upto(1) do |n|
+		serverName = "consul-server-%d" % [n]
+		clientName = "consul-client-%d" % [n]
+		serverIP = "10.199.0.%d" % [10 + n]
+		clientIP = "10.199.0.%d" % [20 + n]
+
+		config.vm.define serverName, autostart: true, primary: true do |vmCfg|
+			vmCfg.vm.box = LINUX_BASE_BOX
+			vmCfg.vm.hostname = serverName
+			vmCfg = configureProviders(vmCfg)
+			vmCfg = configureLinuxProvisioners(vmCfg)
+
+			vmCfg.vm.provider "virtualbox" do |_|
+				vmCfg.vm.network :private_network, ip: serverIP
+				vmCfg.vm.network :forwarded_port, guest: 8500, host: 8500
+				vmCfg.vm.network :forwarded_port, guest: 9090, host: 9090
+			end
+
+			vmCfg.vm.synced_folder './config', '/mnt/my-machine'
+
+			vmCfg.vm.provision "shell",
+				privileged: true,
+				path: './scripts/consul-server.sh'
+
+			vmCfg.vm.provision "shell",
+				privileged: true,
+				path: './scripts/prometheus-server.sh'
+		end
+
+		# config.vm.define clientName, autostart: true, primary: false do |vmCfg|
+		# 	vmCfg.vm.box = LINUX_BASE_BOX
+		# 	vmCfg.vm.hostname = clientName
+		# 	vmCfg = configureProviders(vmCfg)
+		# 	vmCfg = configureLinuxProvisioners(vmCfg)
+
+		# 	vmCfg.vm.provider "virtualbox" do |_|
+		# 		vmCfg.vm.network :private_network, ip: clientIP
+		# 	end
+
+		# 	vmCfg.vm.synced_folder './config', '/mnt/my-machine'
+		# end
+	end
+end
+
+def configureLinuxProvisioners(vmCfg)
+	vmCfg.vm.provision "shell",
+		privileged: true,
+		inline: 'rm -f /home/vagrant/linux.iso'
+
+	vmCfg.vm.provision "shell",
+		privileged: true,
+		path: './scripts/vagrant-linux-priv-config.sh'
+
+	vmCfg.vm.provision "shell",
+		privileged: true,
+		path: './scripts/vagrant-linux-priv-consul.sh'
+
+	vmCfg.vm.provision "shell",
+		privileged: true,
+		path: './scripts/vagrant-linux-priv-prometheus.sh'
+
+	return vmCfg
+end
+
+def configureProviders(vmCfg, cpus: "1", memory: "512")
+	vmCfg.vm.provider "virtualbox" do |v|
+		v.customize ["modifyvm", :id, "--cableconnected1", "on"]
+		v.memory = memory
+		v.cpus = cpus
+	end
+
+	["vmware_fusion", "vmware_workstation"].each do |p|
+		vmCfg.vm.provider p do |v|
+			v.enable_vmrun_ip_lookup = false
+			v.vmx["memsize"] = memory
+			v.vmx["numvcpus"] = cpus
+		end
+	end
+
+	vmCfg.vm.provider "virtualbox" do |v|
+		v.customize ["modifyvm", :id, "--cableconnected1", "on", "--audio", "none"]
+		v.memory = memory
+		v.cpus = cpus
+	end
+
+	return vmCfg
+end
