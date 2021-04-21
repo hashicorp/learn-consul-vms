@@ -1,0 +1,15 @@
+[Unit]
+Description="HashiCups Public API"
+Documentation=https://github.com/hashicorp-demoapp/public-api
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/public-api
+KillMode=process
+Restart=on-failure
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

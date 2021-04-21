@@ -1,0 +1,178 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+#
+
+LINUX_BASE_BOX = "bento/ubuntu-18.04"
+LINUX_IP_ADDRESS = "10.199.0.200"
+
+Vagrant.configure(2) do |config|
+	serverName = "consul-server" 
+	databaseName = "postgres"
+	productName = "product-api"
+	publicName = "public-api"
+	frontendName = "frontend"
+	serverIP = "10.199.0.10"
+	databaseIP = "10.199.0.20"
+	productIP = "10.199.0.30"
+	publicIP = "10.199.0.40"
+	frontendIP = "10.199.0.50"
+
+	config.vm.define serverName, autostart: true, primary: true do |vmCfg|
+		vmCfg.vm.box = LINUX_BASE_BOX
+		vmCfg.vm.hostname = serverName
+		vmCfg = configureProviders(vmCfg)
+		vmCfg = configureLinuxProvisioners(vmCfg)
+		vmCfg = configurePrometheusProvisioners(vmCfg)
+
+		vmCfg.vm.provider "virtualbox" do |_|
+			vmCfg.vm.network :private_network, ip: serverIP
+			vmCfg.vm.network :forwarded_port, guest: 8500, host: 8500
+			vmCfg.vm.network :forwarded_port, guest: 9090, host: 9090
+		end
+
+		vmCfg.vm.synced_folder './config', '/mnt/my-machine'
+
+		vmCfg.vm.provision "shell",
+			privileged: true,
+			path: './scripts/consul-server.sh',
+			args: [serverIP]
+	end
+
+	config.vm.define databaseName, autostart: true, primary: false do |vmCfg|
+		vmCfg.vm.box = LINUX_BASE_BOX
+		vmCfg.vm.hostname = databaseName
+		vmCfg = configureProviders(vmCfg)
+		vmCfg = configureLinuxProvisioners(vmCfg)
+		vmCfg = configureConsulClientProvisioners(vmCfg, serverIP, databaseName, databaseIP)
+
+		vmCfg.vm.provider "virtualbox" do |_|
+			vmCfg.vm.network :private_network, ip: databaseIP
+		end
+
+		vmCfg.vm.synced_folder './config', '/mnt/my-machine'
+
+		vmCfg.vm.provision "shell",
+			privileged: true,
+			path: './scripts/postgresql.sh'
+	end
+
+	config.vm.define productName, autostart: true, primary: false do |vmCfg|
+		vmCfg.vm.box = LINUX_BASE_BOX
+		vmCfg.vm.hostname = productName
+		vmCfg = configureProviders(vmCfg)
+		vmCfg = configureLinuxProvisioners(vmCfg)
+		vmCfg = configureConsulClientProvisioners(vmCfg, serverIP, productName, productIP)
+
+		vmCfg.vm.provider "virtualbox" do |_|
+			vmCfg.vm.network :private_network, ip: productIP
+		end
+
+		vmCfg.vm.synced_folder './config', '/mnt/my-machine'
+
+		vmCfg.vm.provision "shell",
+			privileged: true,
+			path: './scripts/product-api.sh'
+	end
+
+	config.vm.define publicName, autostart: true, primary: false do |vmCfg|
+		vmCfg.vm.box = LINUX_BASE_BOX
+		vmCfg.vm.hostname = publicName
+		vmCfg = configureProviders(vmCfg)
+		vmCfg = configureLinuxProvisioners(vmCfg)
+		vmCfg = configureConsulClientProvisioners(vmCfg, serverIP, publicName, publicIP)
+
+		vmCfg.vm.provider "virtualbox" do |_|
+			vmCfg.vm.network :private_network, ip: publicIP
+		end
+
+		vmCfg.vm.synced_folder './config', '/mnt/my-machine'
+
+		vmCfg.vm.provision "shell",
+			privileged: true,
+			path: './scripts/public-api.sh'
+	end
+
+	config.vm.define frontendName, autostart: true, primary: false do |vmCfg|
+		vmCfg.vm.box = LINUX_BASE_BOX
+		vmCfg.vm.hostname = frontendName
+		vmCfg = configureProviders(vmCfg)
+		vmCfg = configureLinuxProvisioners(vmCfg)
+		vmCfg = configureConsulClientProvisioners(vmCfg, serverIP, frontendName, frontendIP)
+
+		vmCfg.vm.provider "virtualbox" do |_|
+			vmCfg.vm.network :private_network, ip: frontendIP
+			vmCfg.vm.network :forwarded_port, guest: 80, host: 8000
+		end
+
+		vmCfg.vm.synced_folder './config', '/mnt/my-machine'
+
+		vmCfg.vm.provision "shell",
+			privileged: true,
+			path: './scripts/frontend.sh'
+	end
+end
+
+def configureLinuxProvisioners(vmCfg)
+	vmCfg.vm.provision "shell",
+		privileged: true,
+		inline: 'rm -f /home/vagrant/linux.iso'
+
+	vmCfg.vm.provision "shell",
+		privileged: true,
+		path: './scripts/vagrant-linux-priv-config.sh'
+
+	vmCfg.vm.provision "shell",
+		privileged: true,
+		path: './scripts/vagrant-linux-priv-consul.sh'
+
+	return vmCfg
+end
+
+def configurePrometheusProvisioners(vmCfg)
+	vmCfg.vm.provision "shell",
+		privileged: true,
+		path: './scripts/vagrant-linux-priv-prometheus.sh'
+
+	vmCfg.vm.provision "shell",
+		privileged: true,
+		path: './scripts/prometheus-server.sh'
+
+	return vmCfg
+end
+
+def configureConsulClientProvisioners(vmCfg, serverIP, appName, clientIP)
+	vmCfg.vm.provision "shell",
+		privileged: true,
+		path: './scripts/vagrant-linux-priv-envoy.sh'
+
+	vmCfg.vm.provision "shell",
+		privileged: true,
+		path: './scripts/consul-client.sh',
+		args: [serverIP, appName, clientIP]
+
+	return vmCfg
+end
+
+def configureProviders(vmCfg, cpus: "1", memory: "512")
+	vmCfg.vm.provider "virtualbox" do |v|
+		v.customize ["modifyvm", :id, "--cableconnected1", "on"]
+		v.memory = memory
+		v.cpus = cpus
+	end
+
+	["vmware_fusion", "vmware_workstation"].each do |p|
+		vmCfg.vm.provider p do |v|
+			v.enable_vmrun_ip_lookup = false
+			v.vmx["memsize"] = memory
+			v.vmx["numvcpus"] = cpus
+		end
+	end
+
+	vmCfg.vm.provider "virtualbox" do |v|
+		v.customize ["modifyvm", :id, "--cableconnected1", "on", "--audio", "none"]
+		v.memory = memory
+		v.cpus = cpus
+	end
+
+	return vmCfg
+end
