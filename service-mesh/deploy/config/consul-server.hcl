@@ -6,12 +6,20 @@ advertise_addr   = "{{ GetInterfaceIP `eth1` }}"
 client_addr      = "0.0.0.0"
 bind_addr        = "0.0.0.0"
 
+ports {
+  grpc = 8502
+}
+
 ui_config {
   enabled          = true
   metrics_provider = "prometheus"
   metrics_proxy {
     base_url = "http://localhost:9090"
   }
+}
+
+connect {
+  enabled = true
 }
 
 datacenter = "dc1"
