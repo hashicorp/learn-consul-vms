@@ -36,18 +36,23 @@ Vagrant.configure(2) do |config|
 				path: './scripts/prometheus-server.sh'
 		end
 
-		# config.vm.define clientName, autostart: true, primary: false do |vmCfg|
-		# 	vmCfg.vm.box = LINUX_BASE_BOX
-		# 	vmCfg.vm.hostname = clientName
-		# 	vmCfg = configureProviders(vmCfg)
-		# 	vmCfg = configureLinuxProvisioners(vmCfg)
+		config.vm.define clientName, autostart: true, primary: false do |vmCfg|
+			vmCfg.vm.box = LINUX_BASE_BOX
+			vmCfg.vm.hostname = clientName
+			vmCfg = configureProviders(vmCfg)
+			vmCfg = configureLinuxProvisioners(vmCfg)
 
-		# 	vmCfg.vm.provider "virtualbox" do |_|
-		# 		vmCfg.vm.network :private_network, ip: clientIP
-		# 	end
+			vmCfg.vm.provider "virtualbox" do |_|
+				vmCfg.vm.network :private_network, ip: clientIP
+			end
 
-		# 	vmCfg.vm.synced_folder './config', '/mnt/my-machine'
-		# end
+			vmCfg.vm.synced_folder './config', '/mnt/my-machine'
+
+			vmCfg.vm.provision "shell",
+				privileged: true,
+				path: './scripts/consul-client.sh',
+				args: [serverIP]
+		end
 	end
 end
 
