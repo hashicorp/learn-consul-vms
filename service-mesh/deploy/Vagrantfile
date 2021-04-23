@@ -8,15 +8,17 @@ LINUX_IP_ADDRESS = "10.199.0.200"
 Vagrant.configure(2) do |config|
 	serverName = "consul-server" 
 	databaseName = "postgres"
+	productName = "product-api"
 	serverIP = "10.199.0.10"
 	databaseIP = "10.199.0.20"
+	productIP = "10.199.0.30"
 
 	config.vm.define serverName, autostart: true, primary: true do |vmCfg|
 		vmCfg.vm.box = LINUX_BASE_BOX
 		vmCfg.vm.hostname = serverName
 		vmCfg = configureProviders(vmCfg)
 		vmCfg = configureLinuxProvisioners(vmCfg)
-		vmCfg = configurePrometheusProvisioners(vmCfg)
+		vmCfg = configurePrometheusProvisioners(vmCfg, [databaseIP, productIP])
 
 		vmCfg.vm.provider "virtualbox" do |_|
 			vmCfg.vm.network :private_network, ip: serverIP
@@ -28,7 +30,8 @@ Vagrant.configure(2) do |config|
 
 		vmCfg.vm.provision "shell",
 			privileged: true,
-			path: './scripts/consul-server.sh'
+			path: './scripts/consul-server.sh',
+			args: [serverIP]
 	end
 
 	config.vm.define databaseName, autostart: true, primary: false do |vmCfg|
@@ -48,6 +51,24 @@ Vagrant.configure(2) do |config|
 			privileged: true,
 			path: './scripts/postgresql.sh'
 	end
+
+	config.vm.define productName, autostart: true, primary: false do |vmCfg|
+		vmCfg.vm.box = LINUX_BASE_BOX
+		vmCfg.vm.hostname = productName
+		vmCfg = configureProviders(vmCfg)
+		vmCfg = configureLinuxProvisioners(vmCfg)
+		vmCfg = configureConsulClientProvisioners(vmCfg, serverIP, productName, productIP)
+
+		vmCfg.vm.provider "virtualbox" do |_|
+			vmCfg.vm.network :private_network, ip: productIP
+		end
+
+		vmCfg.vm.synced_folder './config', '/mnt/my-machine'
+
+		vmCfg.vm.provision "shell",
+			privileged: true,
+			path: './scripts/product-api.sh'
+	end
 end
 
 def configureLinuxProvisioners(vmCfg)
@@ -66,14 +87,15 @@ def configureLinuxProvisioners(vmCfg)
 	return vmCfg
 end
 
-def configurePrometheusProvisioners(vmCfg)
+def configurePrometheusProvisioners(vmCfg, serviceIPAddresses)
 	vmCfg.vm.provision "shell",
 		privileged: true,
 		path: './scripts/vagrant-linux-priv-prometheus.sh'
 
 	vmCfg.vm.provision "shell",
 		privileged: true,
-		path: './scripts/prometheus-server.sh'
+		path: './scripts/prometheus-server.sh',
+		args: serviceIPAddresses
 
 	return vmCfg
 end

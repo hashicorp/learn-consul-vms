@@ -23,7 +23,12 @@ services {
         tcp      = "$IP_ADDR:20000"
         interval = "10s"
       }
-      proxy {}
+      proxy {
+        config {
+          protocol                   = "tcp"
+          envoy_prometheus_bind_addr = "0.0.0.0:9102"
+        }
+      }
     }
   }
 }

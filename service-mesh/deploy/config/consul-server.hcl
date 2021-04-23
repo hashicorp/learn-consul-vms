@@ -10,11 +10,13 @@ ports {
   grpc = 8502
 }
 
+enable_central_service_config = true
+
 ui_config {
   enabled          = true
   metrics_provider = "prometheus"
   metrics_proxy {
-    base_url = "http://localhost:9090"
+    base_url = "http://$PROMETHEUS_IP_ADDR:9090"
   }
 }
 

@@ -34,4 +34,5 @@ echo "client_encoding = utf8" >> "$PG_CONF"
 systemctl restart postgresql
 
 sudo -u postgres psql -c "CREATE DATABASE products owner postgres;"
+sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'password';"
 sudo -u postgres psql -d products -f /mnt/my-machine/products.sql

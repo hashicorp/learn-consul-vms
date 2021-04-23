@@ -1,0 +1,17 @@
+[Unit]
+Description="HashiCups Product API"
+Documentation=https://github.com/hashicorp-demoapp/product-api-go
+Requires=network-online.target
+After=network-online.target
+ConditionFileNotEmpty=/etc/product-api.d/conf.json
+
+[Service]
+Type=simple
+Environment=CONFIG_FILE=/etc/product-api.d/conf.json
+ExecStart=/usr/bin/product-api
+KillMode=process
+Restart=on-failure
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

@@ -1,16 +1,16 @@
 services {
-  id   = "public-api"
-  name = "public-api"
+  id   = "product-api"
+  name = "product-api"
   tags = [
     "hashicups"
   ]
   address = "$IP_ADDR"
-  port    = 8080
+  port    = 9090
   checks = [
     {
       id       = "http"
-      name     = "HTTP on port 8080"
-      tcp      = "$IP_ADDR:8080"
+      name     = "HTTP on port 9090"
+      tcp      = "$IP_ADDR:9090"
       interval = "30s"
       timeout  = "60s"
     }
@@ -25,9 +25,9 @@ services {
       }
       proxy {
         upstreams {
-          destination_name   = "product-api"
+          destination_name   = "postgres"
           local_bind_address = "127.0.0.1"
-          local_bind_port    = 9090
+          local_bind_port    = 5432
           config {
             protocol = "tcp"
           }
