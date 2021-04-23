@@ -29,7 +29,7 @@ services {
           local_bind_address = "127.0.0.1"
           local_bind_port    = 9090
           config {
-            protocol = "tcp"
+            protocol = "http"
           }
         }
         config {

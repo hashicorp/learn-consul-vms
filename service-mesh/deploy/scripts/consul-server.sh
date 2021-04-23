@@ -14,10 +14,3 @@ sed -i 's/$PROMETHEUS_IP_ADDR/'"${PROMETHEUS_IP_ADDR}"'/g' /etc/consul.d/consul.
 # Enable and start the daemons
 systemctl enable consul
 systemctl start consul
-
-until curl -s -k http://localhost:8500/v1/status/leader | grep 8300; do
-    echo "Waiting for Consul to start"
-    sleep 1
-done
-
-consul config write /mnt/my-machine/service-defaults/proxy-defaults.hcl

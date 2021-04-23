@@ -8,7 +8,12 @@ scrape_configs:
       - targets: ['localhost:9090']
   - job_name: 'envoy'
     metrics_path: /metrics
-    static_configs:
-      - targets: ['$DATABASE_IP_ADDR:9102', '$PRODUCT_IP_ADDR:9102']
-        labels:
-          group: 'envoy'
+    consul_sd_configs:
+      - tags:
+        - hashicups
+    relabel_configs:
+      - source_labels: [__meta_consul_service_address]
+        regex: '(.*)'
+        replacement: '${1}:9102'
+        target_label: '__address__'
+        action: 'replace'

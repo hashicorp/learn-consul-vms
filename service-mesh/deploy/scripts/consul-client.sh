@@ -36,10 +36,3 @@ systemctl enable consul-envoy
 
 systemctl start consul
 systemctl start consul-envoy
-
-until consul members; do
-    echo "Waiting for Consul to start"
-    sleep 1
-done
-
-consul config write /mnt/my-machine/service-defaults/${APP_NAME}.hcl

@@ -9,16 +9,18 @@ Vagrant.configure(2) do |config|
 	serverName = "consul-server" 
 	databaseName = "postgres"
 	productName = "product-api"
+	publicName = "public-api"
 	serverIP = "10.199.0.10"
 	databaseIP = "10.199.0.20"
 	productIP = "10.199.0.30"
+	publicIP = "10.199.0.40"
 
 	config.vm.define serverName, autostart: true, primary: true do |vmCfg|
 		vmCfg.vm.box = LINUX_BASE_BOX
 		vmCfg.vm.hostname = serverName
 		vmCfg = configureProviders(vmCfg)
 		vmCfg = configureLinuxProvisioners(vmCfg)
-		vmCfg = configurePrometheusProvisioners(vmCfg, [databaseIP, productIP])
+		vmCfg = configurePrometheusProvisioners(vmCfg)
 
 		vmCfg.vm.provider "virtualbox" do |_|
 			vmCfg.vm.network :private_network, ip: serverIP
@@ -69,6 +71,24 @@ Vagrant.configure(2) do |config|
 			privileged: true,
 			path: './scripts/product-api.sh'
 	end
+
+	config.vm.define publicName, autostart: true, primary: false do |vmCfg|
+		vmCfg.vm.box = LINUX_BASE_BOX
+		vmCfg.vm.hostname = publicName
+		vmCfg = configureProviders(vmCfg)
+		vmCfg = configureLinuxProvisioners(vmCfg)
+		vmCfg = configureConsulClientProvisioners(vmCfg, serverIP, publicName, publicIP)
+
+		vmCfg.vm.provider "virtualbox" do |_|
+			vmCfg.vm.network :private_network, ip: publicIP
+		end
+
+		vmCfg.vm.synced_folder './config', '/mnt/my-machine'
+
+		vmCfg.vm.provision "shell",
+			privileged: true,
+			path: './scripts/public-api.sh'
+	end
 end
 
 def configureLinuxProvisioners(vmCfg)
@@ -87,15 +107,14 @@ def configureLinuxProvisioners(vmCfg)
 	return vmCfg
 end
 
-def configurePrometheusProvisioners(vmCfg, serviceIPAddresses)
+def configurePrometheusProvisioners(vmCfg)
 	vmCfg.vm.provision "shell",
 		privileged: true,
 		path: './scripts/vagrant-linux-priv-prometheus.sh'
 
 	vmCfg.vm.provision "shell",
 		privileged: true,
-		path: './scripts/prometheus-server.sh',
-		args: serviceIPAddresses
+		path: './scripts/prometheus-server.sh'
 
 	return vmCfg
 end
