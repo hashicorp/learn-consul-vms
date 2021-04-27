@@ -10,10 +10,12 @@ Vagrant.configure(2) do |config|
 	databaseName = "postgres"
 	productName = "product-api"
 	publicName = "public-api"
+	frontendName = "frontend"
 	serverIP = "10.199.0.10"
 	databaseIP = "10.199.0.20"
 	productIP = "10.199.0.30"
 	publicIP = "10.199.0.40"
+	frontendIP = "10.199.0.50"
 
 	config.vm.define serverName, autostart: true, primary: true do |vmCfg|
 		vmCfg.vm.box = LINUX_BASE_BOX
@@ -88,6 +90,25 @@ Vagrant.configure(2) do |config|
 		vmCfg.vm.provision "shell",
 			privileged: true,
 			path: './scripts/public-api.sh'
+	end
+
+	config.vm.define frontendName, autostart: true, primary: false do |vmCfg|
+		vmCfg.vm.box = LINUX_BASE_BOX
+		vmCfg.vm.hostname = frontendName
+		vmCfg = configureProviders(vmCfg)
+		vmCfg = configureLinuxProvisioners(vmCfg)
+		vmCfg = configureConsulClientProvisioners(vmCfg, serverIP, frontendName, frontendIP)
+
+		vmCfg.vm.provider "virtualbox" do |_|
+			vmCfg.vm.network :private_network, ip: frontendIP
+			vmCfg.vm.network :forwarded_port, guest: 80, host: 8000
+		end
+
+		vmCfg.vm.synced_folder './config', '/mnt/my-machine'
+
+		vmCfg.vm.provision "shell",
+			privileged: true,
+			path: './scripts/frontend.sh'
 	end
 end
 
