@@ -8,7 +8,7 @@ services {
   port    = 8080
   checks = [
     {
-      id       = "http"
+      id       = "public-api-http"
       name     = "HTTP on port 8080"
       tcp      = "$IP_ADDR:8080"
       interval = "30s"

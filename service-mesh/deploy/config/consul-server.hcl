@@ -30,3 +30,16 @@ telemetry {
   prometheus_retention_time = "24h"
   disable_hostname          = true
 }
+
+config_entries {
+  bootstrap = [
+    {
+      kind = "proxy-defaults"
+      name = "global"
+      config {
+        protocol                   = "http"
+        envoy_prometheus_bind_addr = "0.0.0.0:9102"
+      }
+    }
+  ]
+}

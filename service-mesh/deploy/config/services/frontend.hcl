@@ -8,7 +8,7 @@ services {
   port    = 80
   checks = [
     {
-      id       = "http"
+      id       = "frontend-http"
       name     = "HTTP on port 80"
       tcp      = "$IP_ADDR:80"
       interval = "30s"

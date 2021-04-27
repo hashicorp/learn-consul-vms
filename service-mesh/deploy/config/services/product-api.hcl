@@ -8,7 +8,7 @@ services {
   port    = 9090
   checks = [
     {
-      id       = "http"
+      id       = "product-api-http"
       name     = "HTTP on port 9090"
       tcp      = "$IP_ADDR:9090"
       interval = "30s"

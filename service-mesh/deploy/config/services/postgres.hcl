@@ -8,7 +8,7 @@ services {
   port    = 5432
   checks = [
     {
-      id       = "tcp"
+      id       = "postgres-tcp"
       name     = "TCP on port 5432"
       tcp      = "$IP_ADDR:5432"
       interval = "30s"
