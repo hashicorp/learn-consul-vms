@@ -12,6 +12,10 @@ popd
 sed 's/$CONSUL_HTTP_ADDR/'"${CONSUL_HTTP_ADDR}"'/g' /mnt/my-machine/consul-client.hcl > /etc/consul.d/consul.hcl
 sed 's/$IP_ADDR/'"${APP_IP_ADDR}"'/g' /mnt/my-machine/services/${APP_NAME}.hcl > /etc/consul.d/${APP_NAME}.hcl
 
+# groupadd consul
+# useradd consul -g consul
+# chown -R consul:consul /tmp/consul/client
+
 cat << EOF > /etc/systemd/system/consul-envoy.service
 [Unit]
 Description=Consul Envoy

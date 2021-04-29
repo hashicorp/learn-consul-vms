@@ -36,9 +36,20 @@ config_entries {
     {
       kind = "proxy-defaults"
       name = "global"
+      mode = "transparent"
+      transparent_proxy {
+        outbound_listener_port = 15001
+      }
       config {
         protocol                   = "http"
         envoy_prometheus_bind_addr = "0.0.0.0:9102"
+      }
+    },
+    {
+      kind = "cluster"
+      name = "cluster"
+      transparent_proxy {
+        catalog_destinations_only = false
       }
     }
   ]

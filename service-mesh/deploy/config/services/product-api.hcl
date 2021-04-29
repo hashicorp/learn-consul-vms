@@ -24,14 +24,6 @@ services {
         interval = "10s"
       }
       proxy {
-        upstreams {
-          destination_name   = "postgres"
-          local_bind_address = "127.0.0.1"
-          local_bind_port    = 5432
-          config {
-            protocol = "tcp"
-          }
-        }
         config {
           protocol                   = "http"
           envoy_prometheus_bind_addr = "0.0.0.0:9102"
