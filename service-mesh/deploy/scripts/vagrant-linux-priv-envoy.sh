@@ -13,10 +13,10 @@ function install_envoy() {
 	fi
 
 	curl -sSL --fail ${DOWNLOAD} | sudo bash -s -- -b /usr/local/bin
-	getenvoy use $${ENVOY_VERSION}
+	getenvoy use ${VERSION}
 	getenvoy run --version
 
-	cp ~/.getenvoy/builds/standard/${VERSION}/linux_glibc/bin/envoy /usr/bin/
+	cp ~/.getenvoy/versions/${VERSION}/bin/envoy /usr/bin/
 }
 
 install_envoy
