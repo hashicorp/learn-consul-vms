@@ -2,7 +2,7 @@
 
 set -o errexit
 
-VERSION="1.16.2"
+VERSION="1.16.4"
 DOWNLOAD=https://getenvoy.io/cli
 
 function install_envoy() {
@@ -13,7 +13,8 @@ function install_envoy() {
 	fi
 
 	curl -sSL --fail ${DOWNLOAD} | sudo bash -s -- -b /usr/local/bin
-	getenvoy run standard:${VERSION} -- --version
+	getenvoy use $${ENVOY_VERSION}
+	getenvoy run --version
 
 	cp ~/.getenvoy/builds/standard/${VERSION}/linux_glibc/bin/envoy /usr/bin/
 }
