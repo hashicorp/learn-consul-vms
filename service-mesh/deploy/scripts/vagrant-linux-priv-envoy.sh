@@ -3,7 +3,7 @@
 set -o errexit
 
 VERSION="1.16.4"
-DOWNLOAD=https://getenvoy.io/cli
+DOWNLOAD=https://func-e.io/install.sh
 
 function install_envoy() {
 	if [[ -e /usr/bin/envoy ]] ; then
@@ -13,10 +13,10 @@ function install_envoy() {
 	fi
 
 	curl -sSL --fail ${DOWNLOAD} | sudo bash -s -- -b /usr/local/bin
-	getenvoy use ${VERSION}
-	getenvoy run --version
+	func-e use ${VERSION}
+	func-e run --version
 
-	cp ~/.getenvoy/versions/${VERSION}/bin/envoy /usr/bin/
+	cp ~/.func-e/versions/${VERSION}/bin/envoy /usr/bin/
 }
 
 install_envoy
