@@ -1,4 +1,9 @@
 /**
+ * Copyright (c) HashiCorp, Inc.
+ * SPDX-License-Identifier: MPL-2.0
+ */
+
+/**
  * Welcome to your Workbox-powered service worker!
  *
  * You'll need to register this file in your web app and you should
