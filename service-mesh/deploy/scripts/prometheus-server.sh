@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 
 DATABASE_IP_ADDR=${1}
 PRODUCT_IP_ADDR=${2}

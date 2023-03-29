@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) HashiCorp, Inc.
+ * SPDX-License-Identifier: MPL-2.0
+ */
+
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
     "revision": "b29532b6b88cbb80603f5d11421cef63",
